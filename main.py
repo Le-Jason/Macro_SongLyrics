@@ -3,6 +3,7 @@ import pyautogui
 import pydirectinput
 import keyboard 
 import os
+import random
 
 pydirectinput.PAUSE = 0.001
 
@@ -21,16 +22,16 @@ def karenEvent():
     pydirectinput.press('enter')
     pydirectinput.write('/all ')
     pydirectinput.keyDown('shift')
-    pydirectinput.write('sorry this chat ai is toxic')
+    pydirectinput.write('am i scripting or am i sion1 .;0')
     pydirectinput.keyUp('shift')
     pydirectinput.press('enter')
 
-    pydirectinput.press('enter')
-    pydirectinput.write('/all ')
-    pydirectinput.keyDown('shift')
-    pydirectinput.write('i hope you have a nice day')
-    pydirectinput.keyUp('shift')
-    pydirectinput.press('enter')
+    # pydirectinput.press('enter')
+    # pydirectinput.write('/all ')
+    # pydirectinput.keyDown('shift')
+    # pydirectinput.write('i hope you have a nice day')
+    # pydirectinput.keyUp('shift')
+    # pydirectinput.press('enter')
 
 def reset():
     pydirectinput.keyUp('shift')
@@ -47,7 +48,7 @@ def fixText(content):
     return content
 
 cnt = 0
-fileName = os.path.join("Data","RedFishBlueFish.txt")
+fileName = os.path.join("Data","SionTalks.txt")
 
 while True:
     try:
@@ -68,9 +69,10 @@ while True:
             if keyboard.is_pressed('8'):
                 while(keyboard.is_pressed('8')):
                     pass
+                q = random.randint(0,129)
                 readText(f_content[readLineIdx])
                 readLineIdx = readLineIdx + 1
-                if(readLineIdx>=200):
+                if(readLineIdx>=130):
                     readLineIdx = 0
             reset()
     except:
