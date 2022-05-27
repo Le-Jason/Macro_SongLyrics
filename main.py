@@ -1,79 +1,169 @@
-import time
 import pyautogui
-import pydirectinput
 import keyboard 
 import os
 import random
+import spotipy
+import lyricsgenius as lg
 
-pydirectinput.PAUSE = 0.001
+pyautogui.PAUSE = 0.1
 
-global readLineIdx
-readLineIdx = 0
+def cleanText():
+    cnt = 0
+    tempWord = ""
+    fileNameRead = os.path.join("Data","songText.txt")
+    fileNameWrite = os.path.join("Data","cleansongText.txt")
+    fileBan = os.path.join("Data","banlist.txt")
+    with open(fileBan,'r',encoding="utf-8") as ban:
+        banLines = ban.readlines()
+        for k in range(0,len(banLines)-1):
+            banLines[k] = banLines[k].replace("\n","")
+        with open(fileNameRead,'r',encoding="utf-8") as rf:
+            with open(fileNameWrite,'w',encoding="utf-8") as wf:
+                for line in rf:
+                    cnt = 0
+                    if line[0:1] == "\n":
+                        cnt = 1
+                    for i in range(0,len(line)):
+                        if line[i] == "[":
+                            cnt = 1
+                    if cnt == 0:
+                        templine = line.split(" ")
+                        for word in templine:
+                            word = word.replace("\n","")
+                            if ''.join(char for char in word if char.isalnum()) in banLines:
+                                temp = "*****"
+                            else:
+                                temp = word
+                            tempWord = tempWord + " "+ temp
+                        tempWord = tempWord + "\n"
+                        wf.write(tempWord)
+                        tempWord = ""
+                
 
+# spotify_client_id = 
+# spotify_secret = 
+# spotify_redirect_url = 'http://google.com'
+# genius_access_token = 
+scope = 'user-read-currently-playing'
+oauth_object = spotipy.SpotifyOAuth(client_id=spotify_client_id,
+                                    client_secret=spotify_secret,
+                                    redirect_uri=spotify_redirect_url,
+                                    scope=scope)
+token_dict = oauth_object.get_access_token()
+token = token_dict['access_token']
+spotify_object = spotipy.Spotify(auth=token)
+genius_object = lg.Genius(genius_access_token)
+current = spotify_object.currently_playing()
+artist_name = current['item']['album']['artists'][0]['name']
+song_title = current['item']['name']
+oldSongTitle = song_title
+length = current['item']['duration_ms']
+progress = current['progress_ms']
+song = genius_object.search_song(title=song_title,artist=artist_name)
+lyrics = song.lyrics
+fileName = os.path.join("Data","songText.txt")
+with open(fileName,'w',encoding="utf-8") as wf:
+    wf.write(lyrics)
+cleanText()
 def sionEvent():
-    pydirectinput.press('enter')
-    pydirectinput.write('/all ')
-    pydirectinput.keyDown('shift')
-    pydirectinput.write('me sion1 you peasant1 .;0')
-    pydirectinput.keyUp('shift')
-    pydirectinput.press('enter')
+    fileName = os.path.join("Data","SionTalks.txt")
+    with open(fileName,'r') as f:
+        f_content = f.readlines()
+        idx = random.randint(0,len(f_content)-1)
+        pyautogui.press('enter')
+        pyautogui.write('/all ')
+        pyautogui.write(f_content[idx])
+        pyautogui.press('enter')
 
-def karenEvent():
-    pydirectinput.press('enter')
-    pydirectinput.write('/all ')
-    pydirectinput.keyDown('shift')
-    pydirectinput.write('am i scripting or am i sion1 .;0')
-    pydirectinput.keyUp('shift')
-    pydirectinput.press('enter')
+def trashEvent():
+    fileName = os.path.join("Data","SionTrash.txt")
+    with open(fileName,'r') as f:
+        f_content = f.readlines()
+        idx = random.randint(0,len(f_content)-1)
+        pyautogui.press('enter')
+        pyautogui.write('/all ')
+        pyautogui.keyDown('shift')
+        pyautogui.write(f_content[idx])
+        pyautogui.keyUp('shift')
+        pyautogui.press('enter')
 
-    # pydirectinput.press('enter')
-    # pydirectinput.write('/all ')
-    # pydirectinput.keyDown('shift')
-    # pydirectinput.write('i hope you have a nice day')
-    # pydirectinput.keyUp('shift')
-    # pydirectinput.press('enter')
+def luluEvent():
+    fileName = os.path.join("Data","luluTalks.txt")
+    with open(fileName,'r') as f:
+        f_content = f.readlines()
+        idx = random.randint(0,len(f_content)-1)
+        pyautogui.press('enter')
+        pyautogui.write('/all ')
+        pyautogui.write(f_content[idx])
+        pyautogui.press('enter')
+def redfishEvent(idx):
+    fileName = os.path.join("Data","RedFishBlueFish.txt")
+    with open(fileName,'r') as f:
+        f_content = f.readlines()
+        pyautogui.press('enter')
+        pyautogui.write('/all ')
+        pyautogui.write(f_content[idx])
+        pyautogui.press('enter')
 
 def reset():
-    pydirectinput.keyUp('shift')
+    pyautogui.keyUp('shift')
 
 def readText(content):
-    pydirectinput.press('enter')
-    pydirectinput.write('/all ')
-    pydirectinput.write(content)
-    pydirectinput.press('enter')
+    pyautogui.press('enter')
+    pyautogui.write('/all ')
+    pyautogui.write(content)
+    pyautogui.press('enter')
 
-def fixText(content):
-    for i in range(0,len(content)-1):
-        content[i] = content[i].lower()
-    return content
+def songEvent(idx):
+    fileName = os.path.join("Data","cleansongText.txt")
+    with open(fileName,'r',encoding="utf-8") as f:
+        f_content = f.readlines()
+        pyautogui.press('enter')
+        pyautogui.write('/all ')
+        pyautogui.write(f_content[idx])
+        pyautogui.press('enter')
 
-cnt = 0
-fileName = os.path.join("Data","SionTalks.txt")
 
+nextsongCNT = 0
+fishidx = 0
+songidx = 0
 while True:
     try:
-        with open(fileName,'r') as f:
-            if(cnt == 0):
-                f_content = f.readlines()
-                f_content = fixText(f_content)
+        if keyboard.is_pressed('-'):
+            while(keyboard.is_pressed('-')):
+                pass
+            current = spotify_object.currently_playing()
+            song_title = current['item']['name']
+            if oldSongTitle != song_title:
+                status = current['currently_playing_type']
+                if status == 'track':
+                    oldSongTitle = song_title
+                    artist_name = current['item']['album']['artists'][0]['name']
+                    song = genius_object.search_song(title=song_title,artist=artist_name)
+                    lyrics = song.lyrics
+                    fileName = os.path.join("Data","songText.txt")
+                    with open(fileName,'w',encoding="utf-8") as wf:
+                        wf.write(lyrics)
+                    songidx = 0
+                    cleanText()
+            songEvent(songidx)
+            songidx = songidx + 1
+        if keyboard.is_pressed('0'):
+            while(keyboard.is_pressed('0')):
+                pass
+            sionEvent()
+        if keyboard.is_pressed('9'):
+            while(keyboard.is_pressed('9')):
+                pass
+            trashEvent()
+        if keyboard.is_pressed('8'):
+            while(keyboard.is_pressed('8')):
+                pass
+            redfishEvent(fishidx)
+            fishidx = fishidx + 1
+            if(fishidx>=200):
+                fishidx = 0
+        # reset()
 
-                cnt = 1
-            if keyboard.is_pressed('0'):
-                while(keyboard.is_pressed('0')):
-                    pass
-                sionEvent()
-            if keyboard.is_pressed('9'):
-                while(keyboard.is_pressed('9')):
-                    pass
-                karenEvent()
-            if keyboard.is_pressed('8'):
-                while(keyboard.is_pressed('8')):
-                    pass
-                q = random.randint(0,129)
-                readText(f_content[readLineIdx])
-                readLineIdx = readLineIdx + 1
-                if(readLineIdx>=130):
-                    readLineIdx = 0
-            reset()
     except:
         pass

@@ -1,4 +1,4 @@
 "# Macro_SongLyrics" 
 
 
-This code is to spam in league game
+This code is to spam in league of legends
