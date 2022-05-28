@@ -1,10 +1,7 @@
-from asyncio.windows_events import NULL
-from ntpath import join
 from tkinter import *
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import filedialog
-import csv
 import os 
 import pyautogui
 import pydirectinput
@@ -15,43 +12,81 @@ import threading
 pyautogui.PAUSE = 0.01
 global x
 x = False
+
+class voiceEvent:
+    def __init__(self,text,key,serial):
+        self.text = text
+        self.key = key
+        self.serial = serial
+        self.idx = 0
+    def trigger(self):
+        if self.key != None:
+            if keyboard.is_pressed(self.key):
+                while(keyboard.is_pressed(self.key)):
+                    pass
+                if self.serial == False:
+                    voiceEvent.randomLeaugeEvent(self)
+                else:
+                    voiceEvent.serialLeagueEvent(self)
+                    self.idx += 1
+            pyautogui.keyUp('shift')
+        else:
+            pass
+    def randomLeaugeEvent(self):
+        fileName = os.path.join("Data","HotkeyEvents",self.text)
+        with open(fileName,'r') as f:
+            f_content = f.readlines()
+            idx = random.randint(0,len(f_content)-1)
+            pydirectinput.press('enter')
+            pyautogui.write('/all ')
+            pyautogui.write(f_content[idx])
+    def serialLeagueEvent(self):
+        fileName = os.path.join("Data","HotkeyEvents",self.text)
+        with open(fileName,'r') as f:
+            f_content = f.readlines()
+            if self.idx >= len(f_content):
+                self.idx = 0
+            pydirectinput.press('enter')
+            pyautogui.write('/all ')
+            pyautogui.write(f_content[self.idx])
+
 def openFile():
-    filepath = filedialog.askopenfilename(initialdir="C:\\Users\\spong\\Documents\\Code\\projects\\macroGame",
-                                            filetypes=(("Text Files","*.txt"),
+    filepath = filedialog.askopenfilename(filetypes=(("Text Files","*.txt"),
                                             ("All Files","*.*")))
     newfilename = os.path.basename(filepath)
-    newfilepath = os.path.join("Data",newfilename)
+    newfilepath = os.path.join("Data","HotkeyEvents",newfilename)
     with open(filepath,'r') as rf:
         with open(newfilepath,'w') as wf:
             for line in rf:
                 wf.write(line)
 
-def reset():
-    pyautogui.keyUp('shift')
-
-
-def trashEvent():
-    fileName = os.path.join("Data","SionTrash.txt")
-    with open(fileName,'r') as f:
-        f_content = f.readlines()
-        idx = random.randint(0,len(f_content)-1)
-        pydirectinput.press('enter')
-        pyautogui.write('/all ')
-        pyautogui.keyDown('shift')
-        pyautogui.write(f_content[idx])
-        pyautogui.keyUp('shift')
-
 def mainProgram():
     global x
+    filename = os.path.join("Data","Settings","keybind.txt")
+    listEvent = []
+    title = []
+    keys = []
+    with open(filename,'r') as rf:
+        for line in rf:
+            line = line.strip()
+            templine = line.split(" ")
+            title.append(templine[0])
+            try:
+                keys.append(templine[1])
+            except:
+                keys.append(None)
+    for i in range(0,len(title)):
+        listEvent.append(voiceEvent(title[i],keys[i],True))
+    idx = 0
     while x:
         try:
-            if keyboard.is_pressed('9'):
-                while(keyboard.is_pressed('9')):
-                    pass
-                trashEvent()
-            reset()
+            listEvent[idx].trigger()
+            idx += 1
+            if idx >= len(listEvent):
+                idx = 0
         except:
             pass
+
 def play():
     global x 
     if x:
@@ -76,17 +111,42 @@ def play():
                     image=stopimg,
                     compound="left",
                     padx=5)
-    
     thread = threading.Thread(target=mainProgram)
     thread.daemon = True
     if x:
         thread.start()
     print("Threads Active:",threading.activeCount())
+
 def key():
+    global entrykey
+    global entryName
     keyname = entrykey.get()
-    print(keyname)
+    newEntry = [entryName, keyname]
+    filename = os.path.join("Data","Settings","keybind.txt")
+    title = []
+    keys = []
+    with open(filename,'r') as rf:
+        for line in rf:
+            line = line.strip()
+            templine = line.split(" ")
+            title.append(templine[0])
+            try:
+                keys.append(templine[1])
+            except:
+                keys.append(None)
+    for i in range(0,len(title)):
+        if(title[i] == newEntry[0]):
+            keys[i] = newEntry[1]
+    with open(filename,'w') as wf:
+        for j in range(0,len(title)):
+            try:
+                tempWord = title[j] + " " + keys[j] + "\n"
+            except:
+                tempWord = title[j] + " " + "\n"
+            wf.write(tempWord)
 
 def hotkeyChange():
+    global entryName
     hotkeyWindow = tk.Toplevel()
     hotkeyWindow.geometry("350x350")
     hotkeyWindow.config(background="white")
@@ -98,7 +158,7 @@ def hotkeyChange():
                     font=('Arial',20,'bold'),
                     bg='white')
     global listbox
-    print(listbox.get(listbox.curselection()))
+    entryName = listbox.get(listbox.curselection())
     label.pack()
     label2.pack()
     global entrykey
@@ -144,17 +204,13 @@ def hotkey():
                     activebackground="grey",
                     state=tk.ACTIVE,
                     padx=5)
-    
     filename = os.path.join("Data","Settings","keybind.txt")
     title = []
     keys = []
-    
-
     with open(filename,'r') as rf:
         for line in rf:
             line = line.strip()
             templine = line.split(" ")
-            
             title.append(templine[0])
             try:
                 keys.append(templine[1])
@@ -163,7 +219,7 @@ def hotkey():
     with open(filename,'w') as wf:
         for line in onlyfiles:
             cnt = 0
-            for i in range(0,len(title)-1):
+            for i in range(0,len(title)):
                 if(line == title[i]):
                     if keys[i] == None:
                         tempWord = title[i] + " " + "\n"
@@ -174,6 +230,8 @@ def hotkey():
             if(cnt == 0):
                 tempWord = line + " " + "\n"
                 wf.write(tempWord)
+    title = []
+    keys = []
     with open(filename,'r') as rf:
         for line in rf:
             line = line.strip()
@@ -191,6 +249,7 @@ def hotkey():
 window = tk.Tk()
 window.geometry("600x400")
 window.title("Game Macro Entertainment(GME)")
+window.resizable(False,False)
 
 iconFilePath = os.path.join("Assets","venus.png")
 fileifconFilePath = os.path.join("Assets","file.png")
