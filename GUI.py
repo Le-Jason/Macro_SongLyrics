@@ -1,4 +1,3 @@
-from tkinter import *
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import filedialog
@@ -35,7 +34,6 @@ class voiceEvent:
             pass
     def randomLeaugeEvent(self):
         fileName = os.path.join("Data","HotkeyEvents",self.text)
-        
         with open(fileName,'r',encoding="utf-8") as f:
             f_content = f.readlines()
             idx = random.randint(0,len(f_content)-1)
@@ -86,6 +84,42 @@ def openFile():
                     wf.write(line)
         hotkeyFrame_Listbox.insert(1,newfilename)
         os.remove(filepath)
+        count = 0
+        dir_path = os.path.join("Data","HotkeyEvents")
+        for path in os.listdir(dir_path):
+            if os.path.isfile(os.path.join(dir_path, path)):
+                count += 1
+        onlyfiles = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
+        count = 0
+        filename = os.path.join("Data","Settings","keybind.txt")
+        title = []
+        keys = []
+        serial = []
+        with open(filename,'r',encoding="utf-8") as rf:
+            for line in rf:
+                line = line.strip()
+                templine = line.split(" ")
+                title.append(templine[0])
+                try:
+                    keys.append(templine[1])
+                    serial.append(templine[2])
+                except:
+                    keys.append(None)
+                    serial.append(None)
+        with open(filename,'w') as wf:
+            for line in onlyfiles:
+                cnt = 0
+                for i in range(0,len(title)):
+                    if(line == title[i]):
+                        if keys[i] == None:
+                            tempWord = title[i] + " " + " " + " " + "\n"
+                        else:
+                            tempWord = title[i] + " " + keys[i] + " " + serial[i] + "\n"
+                        wf.write(tempWord)
+                        cnt = 1
+                if(cnt == 0):
+                    tempWord = line + " " + "\n"
+                    wf.write(tempWord)
     except:
         pass
 
@@ -197,6 +231,7 @@ def mainProgram():
     listEvent = []
     title = []
     keys = []
+    serial = []
     with open(filename,'r',encoding="utf-8") as rf:
         for line in rf:
             line = line.strip()
@@ -204,10 +239,15 @@ def mainProgram():
             title.append(templine[0])
             try:
                 keys.append(templine[1])
+                if templine[2] == "Serial":
+                    serial.append(True)
+                else:
+                    serial.append(False)
             except:
                 keys.append(None)
+                serial.append(None)
     for i in range(0,len(title)):
-        listEvent.append(voiceEvent(title[i],keys[i],False))
+        listEvent.append(voiceEvent(title[i],keys[i],serial[i]))
     idx = 0
     while x:
         try:
@@ -272,8 +312,6 @@ bufferFrame = tk.Frame(window, width=600, height=500)
 
 for frame in(mainFrame,hotkeyFrame,changekeyFrame,bufferFrame):
     frame.grid(row=0,column=0,sticky="news")
-
-
 
 #======MAIN FRAME
 
@@ -473,9 +511,9 @@ hotkeyFrame_ClearAllButton.grid(row=4, column=0,padx=45,pady=10)
 hotkeyFrame_Listbox.config()
 
 #=======HOTKEY CHANGE
-titleString = StringVar()
-keyString = StringVar()
-serialString = StringVar()
+titleString = tk.StringVar()
+keyString = tk.StringVar()
+serialString = tk.StringVar()
 
 changekeyFrame.config(background="white")
 changekeyFrame_Label = tk.Label(changekeyFrame,
