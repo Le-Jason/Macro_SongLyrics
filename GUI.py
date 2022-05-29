@@ -79,7 +79,7 @@ def openFile():
         newfilename = os.path.basename(filepath)
         newfilepath = os.path.join("Data","HotkeyEvents",newfilename)
         with open(filepath,'r',encoding="utf-8") as rf:
-            with open(newfilepath,'w') as wf:
+            with open(newfilepath,'w',encoding="utf-8") as wf:
                 for line in rf:
                     wf.write(line)
         hotkeyFrame_Listbox.insert(1,newfilename)
@@ -106,7 +106,7 @@ def openFile():
                 except:
                     keys.append(None)
                     serial.append(None)
-        with open(filename,'w') as wf:
+        with open(filename,'w',encoding="utf-8") as wf:
             for line in onlyfiles:
                 cnt = 0
                 for i in range(0,len(title)):
@@ -153,7 +153,7 @@ def keyChange():
             serial[i] = "Serial"
             keyString.set(keyName)
             serialString.set("Serial")
-    with open(fileName,'w') as wf:
+    with open(fileName,'w',encoding="utf-8") as wf:
         for j in range(0,len(title)):
             try:
                 tempWord = title[j] + " " + keys[j] + " " + serial[j] + "\n"
@@ -187,7 +187,7 @@ def serialChange():
                 serial[i] = "Serial"
                 serialString.set("Serial")
                 changekeyFrame_SerialButton.config(text = "Change:Random")
-    with open(fileName,'w') as wf:
+    with open(fileName,'w',encoding="utf-8") as wf:
         for j in range(0,len(title)):
             try:
                 tempWord = title[j] + " " + keys[j] + " " + serial[j] + "\n"
@@ -266,14 +266,14 @@ def clearHotKey():
             line = line.strip()
             templine = line.split(" ")
             title.append(templine[0])
-    with open(fileName,'w') as wf:
+    with open(fileName,'w',encoding="utf-8") as wf:
         for j in range(0,len(title)):
             tempWord = title[j] + " " + " " + " " + " " + "\n"
             wf.write(tempWord)
 
 def clearAll():
     fileName = os.path.join("Data","Settings","keybind.txt")
-    with open(fileName,'w') as wf:
+    with open(fileName,'w',encoding="utf-8") as wf:
         wf.write(" ")
     dir_path = os.path.join("Data","HotkeyEvents")
     for path in os.listdir(dir_path):
@@ -290,6 +290,7 @@ window.resizable(False,False)
 window.rowconfigure(0,weight=1)
 window.columnconfigure(0,weight=1)
 window.config(background="white")
+window.eval('tk::PlaceWindow . center')
 
 iconFilePath = os.path.join("Assets","venus.png")
 icon = tk.PhotoImage(file=iconFilePath)
@@ -301,8 +302,6 @@ playimg = myImage("play",30,30)
 stopimg = myImage("stop",30,30)
 spotifyimg = myImage("spotify",30,30)
 leagueimg = myImage("league",60,60)
-
-
 
 #======OTHER WINDOWS
 mainFrame = tk.Frame(window, width=600, height=500)
@@ -430,7 +429,7 @@ with open(filename,'r',encoding="utf-8") as rf:
         except:
             keys.append(None)
             serial.append(None)
-with open(filename,'w') as wf:
+with open(filename,'w',encoding="utf-8") as wf:
     for line in onlyfiles:
         cnt = 0
         for i in range(0,len(title)):
