@@ -5,7 +5,7 @@ At the moment, this application is mainly for League of Legends All Chat. Howeve
 this application will be general use. Another feature with this application is the integration with Spotify and Genius. This means that the macro can display the current song that you are listening to in spotify.
 
 ![keyboard](https://m.media-amazon.com/images/I/71TBg4r1oNL._AC_SY450_.jpg)
-
+![spotify](https://images-na.ssl-images-amazon.com/images/I/51rttY7a+9L.png)
 ## Repo Organization
 ---
 * Assets
