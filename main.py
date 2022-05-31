@@ -1,31 +1,42 @@
+#=======LIBARARIES
 import tkinter as tk
-from PIL import Image, ImageTk
-from tkinter import filedialog
+from fileFunctions import *
 import os 
 import pyautogui
-import pydirectinput
-import keyboard 
-import random
 import threading
 import spotipy
 import lyricsgenius as lg
+from macro import *
+from tkinter import filedialog
 
 pyautogui.PAUSE = 0.01
-global x
-x = False
+global mainProgramCounter
+global spotifyActive
+global spotifyCounter
+mainProgramCounter = False
+spotifyCounter = True
+spotifyActive = False
 
+#=======FUNCTION DEPENDING ON TKINTER
 def cleanText():
+    #Clean/Delete inappropriate word and phrases and intros
+    #Input:N/A
+    #Output:Song.txt from OriginalTextSong.txt
+    #Method:Reads OriginalTextSong.txt and banlist.txt to compare bad phrases and words
+    #       replace those words with ***** and output each line to Song.txt
     cnt = 0
     tempWord = ""
     fileNameRead = os.path.join("Data","Settings","OriginalTextSong.txt")
     fileNameWrite = os.path.join("Data","HotkeyEvents","Song.txt")
     fileBan = os.path.join("Data","Settings","banlist.txt")
     with open(fileBan,'r',encoding="utf-8") as ban:
+        #Reads in bad words
         banLines = ban.readlines()
         for k in range(0,len(banLines)-1):
             banLines[k] = banLines[k].replace("\n","")
         with open(fileNameRead,'r',encoding="utf-8") as rf:
             with open(fileNameWrite,'w',encoding="utf-8") as wf:
+                #Remove intro lines
                 for line in rf:
                     cnt = 0
                     if line[0:1] == "\n":
@@ -34,6 +45,7 @@ def cleanText():
                         if line[i] == "[":
                             cnt = 1
                     if cnt == 0:
+                        #Compare bad words and output it to song.txt
                         templine = line.split(" ")
                         for word in templine:
                             word = word.replace("\n","")
@@ -46,49 +58,10 @@ def cleanText():
                         wf.write(tempWord)
                         tempWord = ""
 
-class voiceEvent:
-    def __init__(self,text,key,serial):
-        self.text = text
-        self.key = key
-        self.serial = serial
-        self.idx = 0
-    def trigger(self):
-        global spotifyActive
-        global oldSongTitle
-        if self.key != None:
-            if keyboard.is_pressed(self.key):
-                while(keyboard.is_pressed(self.key)):
-                    pass
-                if self.serial == False:
-                    voiceEvent.randomLeaugeEvent(self)
-                else:
-                    voiceEvent.serialLeagueEvent(self)
-                    self.idx += 1
-            pyautogui.keyUp('shift')
-        else:
-            pass
-    def randomLeaugeEvent(self):
-        fileName = os.path.join("Data","HotkeyEvents",self.text)
-        with open(fileName,'r',encoding="utf-8") as f:
-            f_content = f.readlines()
-            idx = random.randint(0,len(f_content)-1)
-            pydirectinput.press('enter')
-            pyautogui.write('/all ')
-            pyautogui.write(f_content[idx])
-    def serialLeagueEvent(self):
-        fileName = os.path.join("Data","HotkeyEvents",self.text)
-        with open(fileName,'r',encoding="utf-8") as f:
-            f_content = f.readlines()
-            if self.idx >= len(f_content):
-                self.idx = 0
-            pydirectinput.press('enter')
-            pyautogui.write('/all ')
-            pyautogui.write(f_content[self.idx])
-
-
-
-
 def loginSpot(frame):
+    #Gets the entries for spotify and genius api
+    #Input:Client ID(Spotify), Secrets ID(Spotify), Access Token(Genius)
+    #Output:Entries to api.txt
     client = loginFrame_ClientEntry.get()
     secret = loginFrame_SecretEntry.get()
     access = loginFrame_AccessEntry.get()
@@ -101,13 +74,16 @@ def loginSpot(frame):
 
 
 def checkSpot(frame):
+    #Checks if Spotify is active or has been active
+    #Input:N/A
+    #Output:Login screen or activate spotify
     global spotifyCounter
     global spotifyActive
-    global oldSongTitle
     fileName = os.path.join("Data","Settings","api.txt")
     data = []
     cnt = True
     with open(fileName,'r',encoding="utf-8") as rf:
+        #Read in api.txt
         for line in rf:
             line = line.strip()
             templine = line.split(" ")
@@ -120,13 +96,13 @@ def checkSpot(frame):
         frame.tkraise()
         cnt = False
     if cnt:
+        #Read in Spotify
         if spotifyCounter:
             mainFrame_SpotifyButton.config(text="W/O Spotify",fg="red")
             spotifyCounter = False
             spotify_client_id = data[0]
             spotify_secret = data[1]
             spotify_redirect_url = 'http://google.com'
-
             scope = 'user-read-currently-playing'
             oauth_object = spotipy.SpotifyOAuth(client_id=spotify_client_id,
                                     client_secret=spotify_secret,
@@ -134,6 +110,7 @@ def checkSpot(frame):
                                     scope=scope)
             token_dict = oauth_object.get_access_token()
             try:
+            #Error happens when the uri doesn't work
                 token = token_dict['access_token']
                 fileName = os.path.join("Data","Settings","OriginalTextSong.txt")
                 fileSong = os.path.join("Data","HotkeyEvents","Song.txt")
@@ -146,19 +123,21 @@ def checkSpot(frame):
                 mainFrame_SpotifyButton.config(text="With Spotify",fg="white") 
                 spotifyCounter = True
                 spotifyActive= False
-
         else:
             mainFrame_SpotifyButton.config(text="With Spotify",fg="white") 
             spotifyCounter = True
             spotifyActive= False
 
-def sub():
-    print(1)
-
 def showFrame(frame):
+    #Change between frames
+    #Input:Frame that you want
+    #Output:Change frames
     frame.tkraise()
 
 def getFileList(frame):
+    #Get keybind text files and display them on to changekeyFrame
+    #Input:Frame and keybind.txt
+    #Output:All the data for certain keybind
     textName = hotkeyFrame_Listbox.get(hotkeyFrame_Listbox.curselection())
     titleString.set(textName)
     fileName = os.path.join("Data","Settings","keybind.txt")
@@ -176,8 +155,12 @@ def getFileList(frame):
     frame.tkraise()
 
 def openFile():
+    #Open File and move them to HotkeyEvents folder
+    #Input:N/A
+    #Output:Moving
     filepath = filedialog.askopenfilename(filetypes=(("Text Files","*.txt"),("All Files","*.*")))
     try:
+    #Error is for when user does not choose file
         newfilename = os.path.basename(filepath)
         newfilepath = os.path.join("Data","HotkeyEvents",newfilename)
         with open(filepath,'r',encoding="utf-8") as rf:
@@ -203,6 +186,7 @@ def openFile():
                 templine = line.split(" ")
                 title.append(templine[0])
                 try:
+                #Error is when there is only the title file with no info
                     keys.append(templine[1])
                     serial.append(templine[2])
                 except:
@@ -225,14 +209,10 @@ def openFile():
     except:
         pass
 
-def myImage(name,width,height):
-    file = os.path.join("Assets",name+".png")
-    imageOpen = Image.open(file)
-    resizeImage = imageOpen.resize((width,height))
-    usedImage = ImageTk.PhotoImage(resizeImage)
-    return usedImage
-
 def keyChange():
+    #Change the keybind for the text file
+    #Input:keybind and keybind.txt
+    #Output:Change keybind
     keyName = changekeyFrame_KeyEntry.get()
     fileName = os.path.join("Data","Settings","keybind.txt")
     title = []
@@ -244,6 +224,7 @@ def keyChange():
             templine = line.split(" ")
             title.append(templine[0])
             try:
+            #Error is when there is only the title file with no info
                 keys.append(templine[1])
                 serial.append(templine[2])
             except:
@@ -258,12 +239,16 @@ def keyChange():
     with open(fileName,'w',encoding="utf-8") as wf:
         for j in range(0,len(title)):
             try:
+            #Error is when there is only the title file with no info
                 tempWord = title[j] + " " + keys[j] + " " + serial[j] + "\n"
             except:
                 tempWord = title[j] + " " + " " + " " + " " + "\n"
             wf.write(tempWord)
 
 def serialChange():
+    #Change the Serial for the text file
+    #Input:Serial/Random and keybind.txt
+    #Output:Change Serial
     fileName = os.path.join("Data","Settings","keybind.txt")
     title = []
     keys = []
@@ -274,6 +259,7 @@ def serialChange():
             templine = line.split(" ")
             title.append(templine[0])
             try:
+            #Error is when there is only the title file with no info
                 keys.append(templine[1])
                 serial.append(templine[2])
             except:
@@ -292,15 +278,19 @@ def serialChange():
     with open(fileName,'w',encoding="utf-8") as wf:
         for j in range(0,len(title)):
             try:
+            #Error is when there is only the title file with no info
                 tempWord = title[j] + " " + keys[j] + " " + serial[j] + "\n"
             except:
                 tempWord = title[j] + " " + " " + " " + " " + "\n"
             wf.write(tempWord)
 
 def play():
-    global x 
-    if x:
-        x = False
+    #Play button and starts the thread for the macro
+    #Input:N/A
+    #Output:Starts or stops the main program
+    global mainProgramCounter
+    if mainProgramCounter:
+        mainProgramCounter = False
         mainFrame_StartButton.config(text = "Play",
                     font=("Arial",30),
                     fg="white",
@@ -311,7 +301,7 @@ def play():
                     compound="left",
                     padx=5)
     else:
-        x = True
+        mainProgramCounter = True
         mainFrame_StartButton.config(text = "Stop",
                     font=("Arial",30),
                     fg="red",
@@ -323,12 +313,15 @@ def play():
                     padx=5)
     thread = threading.Thread(target=mainProgram)
     thread.daemon = True
-    if x:
+    if mainProgramCounter:
         thread.start()
-    print("Threads Active:",threading.activeCount())
+    # print("Threads Active:",threading.activeCount()) <===DEBUG AND CHECK THREADS
 
 def mainProgram():
-    global x
+    #Main Program that looks for macros and outputs the textfile macro
+    #Input:N/A
+    #Output:Output macro spam
+    global mainProgramCounter
     global spotifyActive
     filename = os.path.join("Data","Settings","keybind.txt")
     listEvent = []
@@ -341,6 +334,7 @@ def mainProgram():
             templine = line.split(" ")
             title.append(templine[0])
             try:
+            #Error is when there is only the title file with no info
                 keys.append(templine[1])
                 if templine[2] == "Serial":
                     serial.append(True)
@@ -361,6 +355,7 @@ def mainProgram():
                 line = line.strip()
                 templine = line.split(" ")
                 try:
+                #Error is when there is only the title file with no info
                     data.append(templine[1])
                 except:
                     cnt = False
@@ -378,6 +373,7 @@ def mainProgram():
                                     scope=scope)
             token_dict = oauth_object.get_access_token()
             try:
+            #Error happens when the token doesn't work
                 token = token_dict['access_token']
                 spotify_object = spotipy.Spotify(auth=token)
                 genius_object = lg.Genius(genius_access_token)
@@ -393,9 +389,9 @@ def mainProgram():
                 cleanText()
             except:
                 pass
-
-    while x:
+    while mainProgramCounter:
         try:
+        #Error in the spotify api(just pass on it)
             listEvent[idx].trigger()
             idx += 1
             if idx >= len(listEvent):
@@ -410,28 +406,17 @@ def mainProgram():
                         artist_name = current['item']['album']['artists'][0]['name']
                         song = genius_object.search_song(title=song_title,artist=artist_name)
                         lyrics = song.lyrics
-                        fileName = os.path.join("Data","songText.txt")
+                        fileName = os.path.join("Data","Settings","OriginalTextSong.txt")
                         with open(fileName,'w',encoding="utf-8") as wf:
                             wf.write(lyrics)
-                        cleanText()
-            
+                        cleanText()  
         except:
             pass
 
-def clearHotKey():
-    fileName = os.path.join("Data","Settings","keybind.txt")
-    title = []
-    with open(fileName,'r',encoding="utf-8") as rf:
-        for line in rf:
-            line = line.strip()
-            templine = line.split(" ")
-            title.append(templine[0])
-    with open(fileName,'w',encoding="utf-8") as wf:
-        for j in range(0,len(title)):
-            tempWord = title[j] + " " + " " + " " + " " + "\n"
-            wf.write(tempWord)
-
 def clearAll():
+    #Clear All Files
+    #Input:N/A
+    #Output:N/A
     fileName = os.path.join("Data","Settings","keybind.txt")
     with open(fileName,'w',encoding="utf-8") as wf:
         wf.write(" ")
@@ -466,6 +451,7 @@ geniusimgBig = myImage("genius",60,60)
 spotifyimgBig = myImage("spotify",60,60)
 
 #======OTHER WINDOWS
+
 mainFrame = tk.Frame(window, width=600, height=500)
 hotkeyFrame = tk.Frame(window, width=600, height=500)
 changekeyFrame = tk.Frame(window, width=600, height=500)
@@ -476,10 +462,6 @@ for frame in(mainFrame,hotkeyFrame,changekeyFrame,bufferFrame,loginFrame):
     frame.grid(row=0,column=0,sticky="news")
 
 #======MAIN FRAME
-global spotifyActive
-global spotifyCounter
-spotifyCounter = True
-spotifyActive = False
 
 mainFrame.config(background="white")
 
@@ -818,6 +800,5 @@ changekeyFrame_GameDisplay.grid(row=3, column=2,padx=10,pady=40)
 changekeyFrame_GameButton.grid(row=4, column=2,padx=10,pady=40)
 changekeyFrame_BackButton.grid(row=5, column=0)
 
-showFrame(mainFrame)
-
-window.mainloop()
+showFrame(mainFrame) #Starts with main frame
+window.mainloop() #Starts GUI
